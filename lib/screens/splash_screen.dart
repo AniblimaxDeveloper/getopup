@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/app_state.dart';
 import 'onboarding_screen.dart';
-import 'root_screen.dart';
+import 'auth_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -19,13 +19,15 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _route() async {
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
-    final done = AppState.instance.onboardingDone;
+    final state = AppState.instance;
+    Widget next;
+    if (!state.onboardingDone) {
+      next = const OnboardingScreen();
+    } else {
+      next = const AuthScreen();
+    }
     Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => done ? const RootScreen() : const OnboardingScreen(),
-      ),
-    );
+        context, MaterialPageRoute(builder: (_) => next));
   }
 
   @override
@@ -48,12 +50,6 @@ class _SplashScreenState extends State<SplashScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 20,
-                    ),
-                  ],
                 ),
                 child: const Icon(Icons.sports_esports,
                     size: 80, color: Color(0xFF1565C0)),
@@ -74,9 +70,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 width: 32,
                 height: 32,
                 child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 3,
-                ),
+                    color: Colors.white, strokeWidth: 3),
               ),
             ],
           ),
