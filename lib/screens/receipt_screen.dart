@@ -88,7 +88,7 @@ class ReceiptScreen extends StatelessWidget {
                     Navigator.popUntil(context, (route) => route.isFirst),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  backgroundColor: Colors.blueAccent,
+                  backgroundColor: const Color(0xFF1565C0),
                 ),
                 child: const Text('Selesai',
                     style: TextStyle(color: Colors.white)),

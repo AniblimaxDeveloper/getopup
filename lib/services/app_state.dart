@@ -13,18 +13,21 @@ class AppState extends ChangeNotifier {
   List<Transaction> _history = [];
   String _userName = 'Player';
   final Set<String> _usedVouchers = {};
+  bool _onboardingDone = false;
   bool _loaded = false;
 
   int get balance => _balance;
   List<Transaction> get history => List.unmodifiable(_history);
   String get userName => _userName;
   bool get loaded => _loaded;
+  bool get onboardingDone => _onboardingDone;
   Set<String> get usedVouchers => Set.unmodifiable(_usedVouchers);
 
   Future<void> load() async {
     final p = await SharedPreferences.getInstance();
     _balance = p.getInt('balance') ?? 0;
     _userName = p.getString('userName') ?? 'Player';
+    _onboardingDone = p.getBool('onboardingDone') ?? false;
     _usedVouchers.addAll(p.getStringList('usedVouchers') ?? []);
     final raw = p.getString('history');
     if (raw != null && raw.isNotEmpty) {
@@ -44,9 +47,15 @@ class AppState extends ChangeNotifier {
     final p = await SharedPreferences.getInstance();
     await p.setInt('balance', _balance);
     await p.setString('userName', _userName);
+    await p.setBool('onboardingDone', _onboardingDone);
     await p.setStringList('usedVouchers', _usedVouchers.toList());
-    await p.setString('history',
-        jsonEncode(_history.map((t) => t.toJson()).toList()));
+    await p.setString('history', jsonEncode(_history.map((t) => t.toJson()).toList()));
+  }
+
+  Future<void> completeOnboarding() async {
+    _onboardingDone = true;
+    await _persist();
+    notifyListeners();
   }
 
   Future<Transaction> topupSaldo(int amount, String method) async {
@@ -126,7 +135,6 @@ class AppState extends ChangeNotifier {
 
   String _genCode(String prefix) {
     final r = Random();
-    final n = List.generate(8, (_) => r.nextInt(10)).join();
-    return '$prefix-$n';
+    return '$prefix-${List.generate(8, (_) => r.nextInt(10)).join()}';
   }
 }

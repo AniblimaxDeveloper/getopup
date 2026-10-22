@@ -45,28 +45,33 @@ class HistoryScreen extends StatelessWidget {
                         leading: CircleAvatar(
                           backgroundColor: isSaldo
                               ? Colors.green.shade100
-                              : Colors.blue.shade100,
+                              : const Color(0xFFE3F2FD),
                           child: Icon(
-                            isSaldo ? Icons.add : Icons.gamepad,
+                            isSaldo ? Icons.add : Icons.sports_esports,
                             color: isSaldo
                                 ? Colors.green.shade800
-                                : Colors.blue.shade800,
+                                : const Color(0xFF1565C0),
                           ),
                         ),
-                        title: Text(isSaldo
-                            ? 'Isi Saldo ${t.item}'
-                            : '${t.gameName} — ${t.item}'),
+                        title: Text(
+                          isSaldo
+                              ? 'Isi Saldo ${t.item}'
+                              : '${t.gameName} — ${t.item}',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 14),
+                        ),
                         subtitle: Text(
-                          '${DateFormat('dd MMM yyyy HH:mm').format(t.createdAt)}\n'
-                          '${t.code}',
+                          '${DateFormat('dd MMM yyyy HH:mm').format(t.createdAt)}\n${t.code}',
+                          style: const TextStyle(fontSize: 11),
                         ),
                         isThreeLine: true,
                         trailing: Text(
                           '${isSaldo ? '+' : '-'} ${rupiah.format(t.total)}',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color:
-                                isSaldo ? Colors.green : Colors.blueAccent,
+                            color: isSaldo
+                                ? Colors.green
+                                : const Color(0xFF1565C0),
                           ),
                         ),
                       ),
