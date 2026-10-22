@@ -56,15 +56,15 @@ class ProfileScreen extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                      child: _stat('Saldo', rupiah.format(state.balance),
+                      child: _stat(context, 'Saldo', rupiah.format(state.balance),
                           Icons.wallet, Colors.blue)),
                   const SizedBox(width: 8),
                   Expanded(
-                      child: _stat('Top Up', '$gameTx kali',
+                      child: _stat(context, 'Top Up', '$gameTx kali',
                           Icons.sports_esports, Colors.green)),
                   const SizedBox(width: 8),
                   Expanded(
-                      child: _stat('Badge', '$unlocked/5',
+                      child: _stat(context, 'Badge', '$unlocked/5',
                           Icons.emoji_events, Colors.amber)),
                 ],
               ),
@@ -331,7 +331,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _stat(String label, String value, IconData icon, Color color) {
+  Widget _stat(BuildContext context, String label, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
