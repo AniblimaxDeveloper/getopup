@@ -62,7 +62,7 @@ class HistoryScreen extends StatelessWidget {
                         ),
                         isThreeLine: true,
                         trailing: Text(
-                          '${isSaldo ? '+' : '-'} ${rupiah.format(t.price)}',
+                          '${isSaldo ? '+' : '-'} ${rupiah.format(t.total)}',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color:

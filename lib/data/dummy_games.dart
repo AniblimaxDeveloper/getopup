@@ -155,9 +155,9 @@ final List<Game> games = [
     id: 'psn', name: 'PlayStation', publisher: 'Sony',
     category: 'Voucher', emoji: '🎮',
     denominations: [
-      Denom('PSN $10', 165000, tag: 'HOT'),
-      Denom('PSN $20', 320000),
-      Denom('PSN $50', 780000),
+      Denom('PSN \$10', 165000, tag: 'HOT'),
+      Denom('PSN \$20', 320000),
+      Denom('PSN \$50', 780000),
     ],
   ),
 ];
