@@ -12,17 +12,20 @@ class AppState extends ChangeNotifier {
   int _balance = 0;
   List<Transaction> _history = [];
   String _userName = 'Player';
+  final Set<String> _usedVouchers = {};
   bool _loaded = false;
 
   int get balance => _balance;
   List<Transaction> get history => List.unmodifiable(_history);
   String get userName => _userName;
   bool get loaded => _loaded;
+  Set<String> get usedVouchers => Set.unmodifiable(_usedVouchers);
 
   Future<void> load() async {
     final p = await SharedPreferences.getInstance();
     _balance = p.getInt('balance') ?? 0;
     _userName = p.getString('userName') ?? 'Player';
+    _usedVouchers.addAll(p.getStringList('usedVouchers') ?? []);
     final raw = p.getString('history');
     if (raw != null && raw.isNotEmpty) {
       try {
@@ -41,10 +44,9 @@ class AppState extends ChangeNotifier {
     final p = await SharedPreferences.getInstance();
     await p.setInt('balance', _balance);
     await p.setString('userName', _userName);
-    await p.setString(
-      'history',
-      jsonEncode(_history.map((t) => t.toJson()).toList()),
-    );
+    await p.setStringList('usedVouchers', _usedVouchers.toList());
+    await p.setString('history',
+        jsonEncode(_history.map((t) => t.toJson()).toList()));
   }
 
   Future<Transaction> topupSaldo(int amount, String method) async {
@@ -57,7 +59,10 @@ class AppState extends ChangeNotifier {
       userId: _userName,
       zoneId: '',
       item: method,
-      price: amount,
+      subtotal: amount,
+      discount: 0,
+      voucherCode: '',
+      total: amount,
       balanceAfter: _balance,
       createdAt: DateTime.now(),
       status: 'success',
@@ -73,9 +78,15 @@ class AppState extends ChangeNotifier {
     required Denom denom,
     required String userId,
     required String zoneId,
+    required int discount,
+    required String voucherCode,
   }) async {
-    if (_balance < denom.price) return null;
-    _balance -= denom.price;
+    final total = denom.price - discount;
+    if (total < 0) return null;
+    if (_balance < total) return null;
+    _balance -= total;
+    if (voucherCode.isNotEmpty) _usedVouchers.add(voucherCode);
+
     final tx = Transaction(
       code: _genCode('GTU'),
       type: 'game',
@@ -84,7 +95,10 @@ class AppState extends ChangeNotifier {
       userId: userId,
       zoneId: zoneId,
       item: denom.label,
-      price: denom.price,
+      subtotal: denom.price,
+      discount: discount,
+      voucherCode: voucherCode,
+      total: total,
       balanceAfter: _balance,
       createdAt: DateTime.now(),
       status: 'success',
@@ -105,6 +119,7 @@ class AppState extends ChangeNotifier {
     _balance = 0;
     _history = [];
     _userName = 'Player';
+    _usedVouchers.clear();
     await _persist();
     notifyListeners();
   }

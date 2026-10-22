@@ -1,12 +1,15 @@
 class Transaction {
   final String code;
-  final String type; // 'game' atau 'saldo'
+  final String type;
   final String gameName;
   final String gameId;
   final String userId;
   final String zoneId;
   final String item;
-  final int price;
+  final int subtotal;
+  final int discount;
+  final String voucherCode;
+  final int total;
   final int balanceAfter;
   final DateTime createdAt;
   final String status;
@@ -19,7 +22,10 @@ class Transaction {
     required this.userId,
     required this.zoneId,
     required this.item,
-    required this.price,
+    required this.subtotal,
+    required this.discount,
+    required this.voucherCode,
+    required this.total,
     required this.balanceAfter,
     required this.createdAt,
     required this.status,
@@ -33,7 +39,10 @@ class Transaction {
         'userId': userId,
         'zoneId': zoneId,
         'item': item,
-        'price': price,
+        'subtotal': subtotal,
+        'discount': discount,
+        'voucherCode': voucherCode,
+        'total': total,
         'balanceAfter': balanceAfter,
         'createdAt': createdAt.toIso8601String(),
         'status': status,
@@ -47,7 +56,10 @@ class Transaction {
         userId: j['userId'],
         zoneId: j['zoneId'] ?? '',
         item: j['item'],
-        price: j['price'],
+        subtotal: j['subtotal'] ?? j['price'] ?? 0,
+        discount: j['discount'] ?? 0,
+        voucherCode: j['voucherCode'] ?? '',
+        total: j['total'] ?? j['price'] ?? 0,
         balanceAfter: j['balanceAfter'] ?? 0,
         createdAt: DateTime.parse(j['createdAt']),
         status: j['status'] ?? 'success',

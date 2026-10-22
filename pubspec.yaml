@@ -1,7 +1,7 @@
 name: getopup
-description: GeTopUp - Dompet & Top Up Game
+description: GeTopUp - Top Up Game Terlengkap
 publish_to: 'none'
-version: 2.0.0+1
+version: 3.0.0+1
 
 environment:
   sdk: '>=3.5.0 <4.0.0'
@@ -12,6 +12,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.3.2
   intl: any
+  url_launcher: ^6.3.0
 
 dev_dependencies:
   flutter_test:

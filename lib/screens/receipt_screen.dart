@@ -28,9 +28,7 @@ class ReceiptScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                  ),
+                      color: Colors.black.withOpacity(0.1), blurRadius: 8),
                 ],
               ),
               child: Column(
@@ -42,8 +40,7 @@ class ReceiptScreen extends StatelessWidget {
                       style: TextStyle(
                           fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  Text(tx.code,
-                      style: TextStyle(color: Colors.grey.shade700)),
+                  Text(tx.code, style: TextStyle(color: Colors.grey.shade700)),
                   const Divider(height: 32),
                   _row('Tanggal', date),
                   _row('Jenis',
@@ -53,9 +50,14 @@ class ReceiptScreen extends StatelessWidget {
                     _row('User ID', tx.userId),
                     if (tx.zoneId.isNotEmpty) _row('Zone ID', tx.zoneId),
                     _row('Item', tx.item),
+                    _row('Subtotal', rupiah.format(tx.subtotal)),
+                    if (tx.discount > 0)
+                      _row('Diskon (${tx.voucherCode})',
+                          '- ${rupiah.format(tx.discount)}',
+                          valueColor: Colors.green),
                   ] else
                     _row('Metode', tx.item),
-                  _row('Total', rupiah.format(tx.price)),
+                  _row('Total', rupiah.format(tx.total)),
                   _row('Sisa Saldo', rupiah.format(tx.balanceAfter)),
                   _row('Status', tx.status.toUpperCase()),
                   const SizedBox(height: 16),
@@ -64,7 +66,7 @@ class ReceiptScreen extends StatelessWidget {
                       final text = 'Kode: ${tx.code}\n'
                           'Tanggal: $date\n'
                           'Item: ${tx.item}\n'
-                          'Total: ${rupiah.format(tx.price)}\n'
+                          'Total: ${rupiah.format(tx.total)}\n'
                           'Status: ${tx.status}';
                       Clipboard.setData(ClipboardData(text: text));
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -82,8 +84,8 @@ class ReceiptScreen extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () => Navigator.popUntil(
-                    context, (route) => route.isFirst),
+                onPressed: () =>
+                    Navigator.popUntil(context, (route) => route.isFirst),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   backgroundColor: Colors.blueAccent,
@@ -98,19 +100,21 @@ class ReceiptScreen extends StatelessWidget {
     );
   }
 
-  Widget _row(String label, String value) => Padding(
+  Widget _row(String label, String value, {Color? valueColor}) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(
-              width: 110,
-              child: Text(label,
-                  style: TextStyle(color: Colors.grey.shade600)),
+              width: 130,
+              child:
+                  Text(label, style: TextStyle(color: Colors.grey.shade600)),
             ),
             Expanded(
               child: Text(value,
-                  style: const TextStyle(fontWeight: FontWeight.w600)),
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: valueColor ?? Colors.black87)),
             ),
           ],
         ),
