@@ -1,53 +1,55 @@
-import 'dart:convert';
-
 class Transaction {
-  final String id;
+  final String code;
+  final String type; // 'game' atau 'saldo'
   final String gameName;
+  final String gameId;
   final String userId;
   final String zoneId;
   final String item;
-  final int amount;
+  final int price;
+  final int balanceAfter;
   final DateTime createdAt;
   final String status;
 
   Transaction({
-    required this.id,
+    required this.code,
+    required this.type,
     required this.gameName,
+    required this.gameId,
     required this.userId,
     required this.zoneId,
     required this.item,
-    required this.amount,
+    required this.price,
+    required this.balanceAfter,
     required this.createdAt,
     required this.status,
   });
 
   Map<String, dynamic> toJson() => {
-        'id': id,
+        'code': code,
+        'type': type,
         'gameName': gameName,
+        'gameId': gameId,
         'userId': userId,
         'zoneId': zoneId,
         'item': item,
-        'amount': amount,
+        'price': price,
+        'balanceAfter': balanceAfter,
         'createdAt': createdAt.toIso8601String(),
         'status': status,
       };
 
-  factory Transaction.fromJson(Map<String, dynamic> json) => Transaction(
-        id: json['id'],
-        gameName: json['gameName'],
-        userId: json['userId'],
-        zoneId: json['zoneId'] ?? '',
-        item: json['item'],
-        amount: json['amount'],
-        createdAt: DateTime.parse(json['createdAt']),
-        status: json['status'],
+  factory Transaction.fromJson(Map<String, dynamic> j) => Transaction(
+        code: j['code'],
+        type: j['type'] ?? 'game',
+        gameName: j['gameName'],
+        gameId: j['gameId'] ?? '-',
+        userId: j['userId'],
+        zoneId: j['zoneId'] ?? '',
+        item: j['item'],
+        price: j['price'],
+        balanceAfter: j['balanceAfter'] ?? 0,
+        createdAt: DateTime.parse(j['createdAt']),
+        status: j['status'] ?? 'success',
       );
-
-  static String encodeList(List<Transaction> list) =>
-      jsonEncode(list.map((t) => t.toJson()).toList());
-
-  static List<Transaction> decodeList(String str) {
-    final data = jsonDecode(str) as List;
-    return data.map((e) => Transaction.fromJson(e)).toList();
-  }
 }

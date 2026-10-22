@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
+import 'services/app_state.dart';
+import 'screens/root_screen.dart';
 
-void main() => runApp(MyApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await AppState.instance.load();
+  runApp(const GeTopUpApp());
+}
 
-class MyApp extends StatelessWidget {
+class GeTopUpApp extends StatelessWidget {
+  const GeTopUpApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'GeTopUp',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
         useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
       ),
-      home: HomeScreen(),
+      home: const RootScreen(),
     );
   }
 }

@@ -1,87 +1,92 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../data/dummy_games.dart';
+import '../services/app_state.dart';
+import 'saldo_screen.dart';
 import 'topup_screen.dart';
-import 'history_screen.dart';
 
-class HomeScreen extends StatefulWidget {
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  int _index = 0;
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final pages = [_buildHome(), HistoryScreen()];
-    return Scaffold(
-      body: IndexedStack(index: _index, children: pages),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: [
-          NavigationDestination(icon: Icon(Icons.home), label: 'Beranda'),
-          NavigationDestination(
-              icon: Icon(Icons.receipt_long), label: 'Riwayat'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHome() {
-    return Scaffold(
-      appBar: AppBar(title: Text('GeTopUp')),
-      body: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(20),
-            color: Colors.blueAccent,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Top Up Game Termurah',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+    final rupiah =
+        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    return AnimatedBuilder(
+      animation: AppState.instance,
+      builder: (context, _) {
+        final state = AppState.instance;
+        return Scaffold(
+          appBar: AppBar(title: const Text('GeTopUp')),
+          body: ListView(
+            padding: const EdgeInsets.all(12),
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF1976D2), Color(0xFF42A5F5)],
                   ),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                SizedBox(height: 4),
-                Text(
-                  'Proses instan, harga mulai Rp 5',
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.all(12),
-              itemCount: dummyGames.length,
-              itemBuilder: (context, index) {
-                final game = dummyGames[index];
-                return Card(
-                  margin: EdgeInsets.only(bottom: 10),
-                  child: ListTile(
-                    leading: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        game.imageUrl,
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.cover,
-                        errorBuilder: (c, e, s) =>
-                            Icon(Icons.gamepad, size: 50),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Saldo Saya',
+                        style: TextStyle(color: Colors.white70)),
+                    const SizedBox(height: 6),
+                    Text(
+                      rupiah.format(state.balance),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
                       ),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SaldoScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text('Isi Saldo'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.blue.shade800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Pilih Game',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              ...games.map((game) {
+                final cheapest = game.denominations
+                    .map((d) => d.price)
+                    .reduce((a, b) => a < b ? a : b);
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.blue.shade100,
+                      child: Text(game.emoji,
+                          style: const TextStyle(fontSize: 24)),
                     ),
                     title: Text(
                       game.name,
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    subtitle: Text('Mulai dari ${game.denominations.first}'),
-                    trailing: Icon(Icons.chevron_right),
+                    subtitle: Text('Mulai ${rupiah.format(cheapest)}'),
+                    trailing: const Icon(Icons.chevron_right),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -92,11 +97,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
                 );
-              },
-            ),
+              }),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
