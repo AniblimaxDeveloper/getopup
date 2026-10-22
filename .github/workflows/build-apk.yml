@@ -22,11 +22,15 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Regenerate Android platform files
-        run: flutter create . --platforms=android --project-name getopup
-
       - name: Get dependencies
         run: flutter pub get
+
+      - name: Regenerate android only if missing
+        run: |
+          if [ ! -d "android" ]; then
+            flutter create . --platforms=android --project-name getopup
+            git checkout -- pubspec.yaml 2>/dev/null || true
+          fi
 
       - name: Build APK
         run: flutter build apk --release
