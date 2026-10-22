@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/game.dart';
+import '../models/transaction.dart';
+import '../services/storage_service.dart';
 
 class TopupScreen extends StatefulWidget {
   final Game game;
@@ -15,35 +18,68 @@ class _TopupScreenState extends State<TopupScreen> {
   String? _selectedDenom;
   bool _isLoading = false;
 
+  final _rupiah = NumberFormat.currency(
+    locale: 'id_ID',
+    symbol: 'Rp ',
+    decimalDigits: 0,
+  );
+
   Future<void> _processTopup() async {
-    if (_idController.text.isEmpty || _selectedDenom == null) {
+    final id = _idController.text.trim();
+    if (id.isEmpty || _selectedDenom == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Isi User ID dan pilih nominal terlebih dahulu')),
+        SnackBar(content: Text('Isi User ID dan pilih nominal')),
+      );
+      return;
+    }
+    if (id.length < 4) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('User ID minimal 4 digit')),
       );
       return;
     }
 
     setState(() => _isLoading = true);
     await Future.delayed(Duration(seconds: 2));
-    setState(() => _isLoading = false);
+
+    final tx = Transaction(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      gameName: widget.game.name,
+      userId: id,
+      zoneId: _zoneController.text.trim(),
+      item: _selectedDenom!,
+      amount: 5,
+      createdAt: DateTime.now(),
+      status: 'success',
+    );
+    await StorageService.saveTransaction(tx);
 
     if (!mounted) return;
+    setState(() => _isLoading = false);
+
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (_) => AlertDialog(
-        title: Text('Transaksi Berhasil'),
+        title: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green),
+            SizedBox(width: 8),
+            Text('Berhasil'),
+          ],
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Game: ${widget.game.name}'),
-            Text('User ID: ${_idController.text}'),
+            Text('User ID: $id'),
             if (_zoneController.text.isNotEmpty)
               Text('Zone: ${_zoneController.text}'),
             Text('Item: $_selectedDenom'),
-            SizedBox(height: 8),
+            Divider(),
             Text(
-              'Total: Rp 5',
+              'Total: ${_rupiah.format(5)}',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ],
@@ -54,7 +90,7 @@ class _TopupScreenState extends State<TopupScreen> {
               Navigator.pop(context);
               Navigator.pop(context);
             },
-            child: Text('OK'),
+            child: Text('Selesai'),
           ),
         ],
       ),
@@ -75,6 +111,7 @@ class _TopupScreenState extends State<TopupScreen> {
               decoration: InputDecoration(
                 labelText: 'User ID',
                 border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.person),
               ),
               keyboardType: TextInputType.number,
             ),
@@ -84,11 +121,13 @@ class _TopupScreenState extends State<TopupScreen> {
               decoration: InputDecoration(
                 labelText: 'Zone ID (opsional)',
                 border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.tag),
               ),
               keyboardType: TextInputType.number,
             ),
             SizedBox(height: 12),
             DropdownButtonFormField<String>(
+              value: _selectedDenom,
               items: widget.game.denominations
                   .map((d) => DropdownMenuItem(value: d, child: Text(d)))
                   .toList(),
@@ -96,6 +135,7 @@ class _TopupScreenState extends State<TopupScreen> {
               decoration: InputDecoration(
                 labelText: 'Pilih Nominal',
                 border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.card_giftcard),
               ),
             ),
             SizedBox(height: 24),
@@ -110,7 +150,7 @@ class _TopupScreenState extends State<TopupScreen> {
                 children: [
                   Text('Total Bayar', style: TextStyle(fontSize: 16)),
                   Text(
-                    'Rp 5',
+                    _rupiah.format(5),
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
