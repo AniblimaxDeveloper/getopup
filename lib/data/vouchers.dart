@@ -1,9 +1,14 @@
 class Voucher {
   final String code, description;
-  final int? percentOff, fixedOff, minSpend, maxDiscount;
+  final int? percentOff, fixedOff;
+  final int minSpend, maxDiscount;
   const Voucher({
-    required this.code, required this.description,
-    this.percentOff, this.fixedOff, this.minSpend = 0, this.maxDiscount = 0,
+    required this.code,
+    required this.description,
+    this.percentOff,
+    this.fixedOff,
+    this.minSpend = 0,
+    this.maxDiscount = 0,
   });
 
   int calculate(int subtotal) {

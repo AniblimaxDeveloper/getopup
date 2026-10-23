@@ -28,8 +28,8 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context, _) {
         final state = AppState.instance;
         final filtered = _category == 'Semua'
-            ? games
-            : games.where((g) => g.category == _category).toList();
+            ? allGames
+            : allGames.where((g) => g.category == _category).toList();
 
         return Scaffold(
           body: SafeArea(

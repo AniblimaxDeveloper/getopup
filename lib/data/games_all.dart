@@ -2,6 +2,8 @@ import '../models/game.dart';
 import 'dummy_games.dart' as base;
 import 'games_extra.dart';
 
+export 'dummy_games.dart' show categories;
+
 final List<Game> allGames = [...base.games, ...extraGames];
 final List<Game> allPopular = allGames.where((g) => g.isPopular).toList();
 
