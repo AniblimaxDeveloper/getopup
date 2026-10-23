@@ -39,28 +39,87 @@ class GeTopUpApp extends StatelessWidget {
           brightness: Brightness.light,
         ),
         scaffoldBackgroundColor: const Color(0xFFF5F7FA),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          foregroundColor: Colors.black87,
-        ),
         textTheme: _scaled(ThemeData.light().textTheme, fontScale),
       );
 
   ThemeData _darkTheme(ThemeColorOption tc, double fontScale) => ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: tc.primary,
+        colorScheme: ColorScheme(
           brightness: Brightness.dark,
+          primary: tc.accent,
+          onPrimary: Colors.black,
+          primaryContainer: tc.dark,
+          onPrimaryContainer: Colors.white,
+          secondary: const Color(0xFFFFC107),
+          onSecondary: Colors.black,
+          secondaryContainer: const Color(0xFF2A2417),
+          onSecondaryContainer: const Color(0xFFFFE082),
+          tertiary: tc.accent,
+          onTertiary: Colors.black,
+          error: const Color(0xFFCF6679),
+          onError: Colors.black,
+          surface: const Color(0xFF151A21),
+          onSurface: const Color(0xFFE8EAED),
+          surfaceContainerHighest: const Color(0xFF1F2630),
+          onSurfaceVariant: const Color(0xFF9AA0A6),
         ),
-        scaffoldBackgroundColor: const Color(0xFF121212),
+        scaffoldBackgroundColor: const Color(0xFF0B0E11),
+        canvasColor: const Color(0xFF0B0E11),
+        cardColor: const Color(0xFF151A21),
+        dividerColor: const Color(0xFF232A33),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF1E1E1E),
+          backgroundColor: Color(0xFF0F1318),
           elevation: 0,
           foregroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
+          centerTitle: false,
         ),
-        cardColor: const Color(0xFF1E1E1E),
+        navigationBarTheme: NavigationBarThemeData(
+          backgroundColor: const Color(0xFF0F1318),
+          indicatorColor: tc.accent.withOpacity(0.2),
+          labelTextStyle: WidgetStateProperty.all(
+            const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+          ),
+        ),
+        cardTheme: const CardThemeData(
+          color: Color(0xFF151A21),
+          elevation: 0,
+          margin: EdgeInsets.zero,
+        ),
+        chipTheme: const ChipThemeData(
+          backgroundColor: Color(0xFF1F2630),
+          selectedColor: Color(0xFF1565C0),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: const Color(0xFF151A21),
+          hintStyle: const TextStyle(color: Color(0xFF6E7681)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFF232A33)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFF232A33)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: tc.accent, width: 2),
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: tc.accent,
+            foregroundColor: Colors.black,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            textStyle: const TextStyle(
+                fontSize: 15, fontWeight: FontWeight.bold),
+          ),
+        ),
         textTheme: _scaled(ThemeData.dark().textTheme, fontScale),
       );
 

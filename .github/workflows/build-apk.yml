@@ -22,15 +22,22 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Get dependencies
-        run: flutter pub get
+      - run: flutter pub get
 
-      - name: Regenerate android if missing
+      - name: Ensure android platform exists
         run: |
           if [ ! -f "android/app/build.gradle" ] && [ ! -f "android/app/build.gradle.kts" ]; then
             flutter create . --platforms=android --project-name getopup
             git checkout -- pubspec.yaml 2>/dev/null || true
           fi
+
+      - name: Apply custom app icon
+        run: |
+          mkdir -p android/app/src/main/res/mipmap-anydpi-v26
+          mkdir -p android/app/src/main/res/drawable
+          cp _icons/mipmap-anydpi-v26/*.xml android/app/src/main/res/mipmap-anydpi-v26/
+          cp _icons/drawable/*.xml android/app/src/main/res/drawable/
+          echo "Custom icon applied"
 
       - name: Build APK
         run: flutter build apk --release

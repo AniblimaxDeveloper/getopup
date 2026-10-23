@@ -23,7 +23,7 @@ class AppState extends ChangeNotifier {
   final Set<String> _usedVouchers = {};
   bool _onboardingDone = false;
   bool _loaded = false;
-  bool _darkMode = false;
+  bool _darkMode = true;
   int _themeColorIndex = 0;
   String _language = 'id';
   double _fontScale = 1.0;
@@ -114,7 +114,7 @@ class AppState extends ChangeNotifier {
     if (_referralCode.isEmpty) _referralCode = _genReferral();
     _xp = p.getInt('xp') ?? 0;
     _onboardingDone = p.getBool('onboardingDone') ?? false;
-    _darkMode = p.getBool('darkMode') ?? false;
+    _darkMode = p.getBool('darkMode') ?? true;
     _themeColorIndex = p.getInt('themeColorIndex') ?? 0;
     _language = p.getString('language') ?? 'id';
     _fontScale = p.getDouble('fontScale') ?? 1.0;
