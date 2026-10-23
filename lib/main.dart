@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'services/app_state.dart';
 import 'screens/splash_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  await GoogleSignIn.instance.initialize();
   await AppState.instance.load();
   runApp(const GeTopUpApp());
 }
@@ -35,13 +39,9 @@ class GeTopUpApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF1565C0),
           brightness: Brightness.light,
+          dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
         ),
         scaffoldBackgroundColor: const Color(0xFFF5F7FA),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          foregroundColor: Colors.black87,
-        ),
         textTheme: _scaledText(ThemeData.light().textTheme, fontScale),
       );
 
@@ -51,18 +51,13 @@ class GeTopUpApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF1565C0),
           brightness: Brightness.dark,
+          dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
         ),
         scaffoldBackgroundColor: const Color(0xFF121212),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF1E1E1E),
-          elevation: 0,
-          foregroundColor: Colors.white,
-        ),
         cardColor: const Color(0xFF1E1E1E),
         textTheme: _scaledText(ThemeData.dark().textTheme, fontScale),
       );
 
-  TextTheme _scaledText(TextTheme base, double scale) => base.apply(
-        fontSizeFactor: scale,
-      );
+  TextTheme _scaledText(TextTheme base, double scale) =>
+      base.apply(fontSizeFactor: scale);
 }

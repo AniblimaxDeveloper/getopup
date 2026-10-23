@@ -1,4 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import '../data/dummy_games.dart';
 import '../data/banners.dart';
@@ -31,63 +33,34 @@ class _HomeScreenState extends State<HomeScreen> {
 
         return Scaffold(
           body: SafeArea(
-            child: RefreshIndicator(
-              onRefresh: () => Future.delayed(const Duration(seconds: 1)),
-              child: CustomScrollView(
-                slivers: [
-                  SliverToBoxAdapter(child: _buildHeader(state, rupiah)),
-                  SliverToBoxAdapter(child: _buildBannerCarousel()),
-                  SliverToBoxAdapter(child: _buildQuickActions()),
-                  SliverToBoxAdapter(child: _buildPopularSection(rupiah)),
-                  SliverToBoxAdapter(child: _buildCategories()),
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    sliver: SliverToBoxAdapter(
-                      child: Row(
-                        children: [
-                          const Text('Semua Game',
-                              style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold)),
-                          const Spacer(),
-                          Text('${filtered.length} game',
-                              style: TextStyle(
-                                  color: Colors.grey.shade600, fontSize: 12)),
-                        ],
-                      ),
+            child: CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(child: _glassHeader(state, rupiah)),
+                SliverToBoxAdapter(child: _bannerCarousel()),
+                SliverToBoxAdapter(child: _quickActions()),
+                SliverToBoxAdapter(child: _popularSection(rupiah)),
+                SliverToBoxAdapter(child: _categories()),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  sliver: SliverGrid(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      childAspectRatio: 0.72,
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, i) => _GameCard(game: filtered[i])
+                          .animate()
+                          .fadeIn(delay: (i * 40).ms, duration: 400.ms)
+                          .slideY(begin: 0.2, end: 0),
+                      childCount: filtered.length,
                     ),
                   ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 12)),
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    sliver: SliverGrid(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        childAspectRatio: 0.72,
-                        mainAxisSpacing: 10,
-                        crossAxisSpacing: 10,
-                      ),
-                      delegate: SliverChildBuilderDelegate(
-                        (context, i) => _GameCard(game: filtered[i]),
-                        childCount: filtered.length,
-                      ),
-                    ),
-                  ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 24)),
-                  SliverToBoxAdapter(
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Text(
-                          '© 2024 getopup.com — All rights reserved',
-                          style: TextStyle(
-                              color: Colors.grey.shade500, fontSize: 11),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
+              ],
             ),
           ),
         );
@@ -95,115 +68,89 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHeader(AppState state, NumberFormat rupiah) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF0D47A1), Color(0xFF1976D2), Color(0xFF42A5F5)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
-        ),
-      ),
-      child: Column(
-        children: [
-          Row(
+  Widget _glassHeader(AppState state, NumberFormat rupiah) {
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          margin: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                const Color(0xFF0D47A1).withOpacity(0.9),
+                const Color(0xFF42A5F5).withOpacity(0.7),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withOpacity(0.3)),
+          ),
+          child: Column(
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.sports_esports,
-                    color: Color(0xFF1565C0), size: 20),
-              ),
-              const SizedBox(width: 10),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('GeTopUp',
-                        style: TextStyle(
+              Row(
+                children: [
+                  const Icon(Icons.sports_esports,
+                      color: Colors.white, size: 28),
+                  const SizedBox(width: 8),
+                  const Text('GeTopUp',
+                      style: TextStyle(
                           color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        )),
-                    Text('getopup.com',
-                        style: TextStyle(color: Colors.white70, fontSize: 11)),
-                  ],
-                ),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold)),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const SearchScreen())),
+                    icon: const Icon(Icons.search, color: Colors.white),
+                  ),
+                ],
               ),
-              IconButton(
-                onPressed: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const SearchScreen())),
-                icon: const Icon(Icons.search, color: Colors.white),
-              ),
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.notifications_outlined,
-                    color: Colors.white),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Saldo Saya',
+                            style: TextStyle(
+                                color: Colors.white70, fontSize: 12)),
+                        const SizedBox(height: 4),
+                        Text(rupiah.format(state.balance),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold)),
+                        Text('Hai, ${state.userName}',
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 11)),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const SaldoScreen())),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Isi Saldo'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF1565C0),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white24),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Saldo Saya',
-                          style:
-                              TextStyle(color: Colors.white70, fontSize: 12)),
-                      const SizedBox(height: 4),
-                      Text(
-                        rupiah.format(state.balance),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text('Hai, ${state.userName}',
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 12)),
-                    ],
-                  ),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () => Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => const SaldoScreen())),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Isi Saldo'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF1565C0),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
-    );
+    ).animate().fadeIn(duration: 500.ms).slideY(begin: -0.1, end: 0);
   }
 
-  Widget _buildBannerCarousel() {
+  Widget _bannerCarousel() {
     return SizedBox(
       height: 140,
       child: PageView.builder(
@@ -213,21 +160,10 @@ class _HomeScreenState extends State<HomeScreen> {
           final b = promoBanners[i];
           return Container(
             margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: b.colors,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: b.colors.first.withOpacity(0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              gradient: LinearGradient(colors: b.colors),
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
               children: [
@@ -241,7 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.25),
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(b.tag,
                             style: const TextStyle(
@@ -249,31 +185,38 @@ class _HomeScreenState extends State<HomeScreen> {
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold)),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text(b.title,
                           style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          )),
-                      const SizedBox(height: 4),
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold)),
                       Text(b.subtitle,
                           style: const TextStyle(
-                              color: Colors.white70, fontSize: 12, height: 1.3)),
+                              color: Colors.white70, fontSize: 11)),
                     ],
                   ),
                 ),
-                const Icon(Icons.local_offer,
-                    color: Colors.white54, size: 60),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    b.gameIconUrl,
+                    width: 60,
+                    height: 60,
+                    fit: BoxFit.cover,
+                    errorBuilder: (c, e, s) =>
+                        const Icon(Icons.gamepad, color: Colors.white54, size: 60),
+                  ),
+                ),
               ],
             ),
-          );
+          ).animate().fadeIn(delay: (i * 100).ms);
         },
       ),
     );
   }
 
-  Widget _buildQuickActions() {
+  Widget _quickActions() {
     final actions = [
       ('Isi Saldo', Icons.account_balance_wallet, const Color(0xFF1565C0),
           () => Navigator.push(context,
@@ -292,7 +235,7 @@ class _HomeScreenState extends State<HomeScreen> {
           return Expanded(
             child: InkWell(
               onTap: a.$4,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -301,7 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: a.$3.withOpacity(0.1),
+                        color: a.$3.withOpacity(0.12),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(a.$2, color: a.$3, size: 24),
@@ -320,8 +263,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildPopularSection(NumberFormat rupiah) {
-    final popular = popularGames.take(6).toList();
+  Widget _popularSection(NumberFormat rupiah) {
+    final popular = popularGames.take(8).toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -329,12 +272,10 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Row(
             children: [
-              Icon(Icons.local_fire_department,
-                  color: Colors.red, size: 20),
+              Icon(Icons.local_fire_department, color: Colors.red, size: 20),
               SizedBox(width: 6),
               Text('Game Populer',
-                  style:
-                      TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ],
           ),
         ),
@@ -355,11 +296,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     MaterialPageRoute(
                         builder: (_) => GameDetailScreen(game: g)),
                   ),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   child: Card(
-                    elevation: 2,
+                    elevation: 3,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(16)),
                     child: Padding(
                       padding: const EdgeInsets.all(10),
                       child: Column(
@@ -370,7 +311,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               color: const Color(0xFF1565C0).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(14),
                             ),
                             child: Image.network(
                               g.imageUrl,
@@ -389,7 +330,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 2),
                           Text(rupiah.format(g.cheapest),
                               style: const TextStyle(
                                   fontSize: 10,
@@ -408,43 +348,32 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildCategories() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16, 20, 16, 8),
-          child: Text('Kategori',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        ),
-        SizedBox(
-          height: 40,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            children: categories.map((c) {
-              final active = c == _category;
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: FilterChip(
-                  label: Text(c),
-                  selected: active,
-                  onSelected: (_) => setState(() => _category = c),
-                  selectedColor: const Color(0xFF1565C0),
-                  labelStyle: TextStyle(
-                    color: active ? Colors.white : Colors.black87,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20)),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-        const SizedBox(height: 12),
-      ],
+  Widget _categories() {
+    return SizedBox(
+      height: 40,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        children: categories.map((c) {
+          final active = c == _category;
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: FilterChip(
+              label: Text(c),
+              selected: active,
+              onSelected: (_) => setState(() => _category = c),
+              selectedColor: const Color(0xFF1565C0),
+              labelStyle: TextStyle(
+                color: active ? Colors.white : null,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 }
@@ -462,17 +391,16 @@ class _GameCard extends StatelessWidget {
         context,
         MaterialPageRoute(builder: (_) => GameDetailScreen(game: game)),
       ),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 8,
+                offset: const Offset(0, 2)),
           ],
         ),
         child: Column(
@@ -490,9 +418,8 @@ class _GameCard extends StatelessWidget {
                         colors: [Color(0xFFE3F2FD), Color(0xFFBBDEFB)],
                       ),
                       borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(12),
-                        topRight: Radius.circular(12),
-                      ),
+                          topLeft: Radius.circular(16),
+                          topRight: Radius.circular(16)),
                     ),
                     child: Image.network(
                       game.imageUrl,
@@ -512,7 +439,7 @@ class _GameCard extends StatelessWidget {
                             horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: Colors.red,
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: const Text('HOT',
                             style: TextStyle(
@@ -539,13 +466,11 @@ class _GameCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        const Icon(Icons.star,
-                            size: 10, color: Colors.amber),
+                        const Icon(Icons.star, size: 10, color: Colors.amber),
                         const SizedBox(width: 2),
                         Text('${game.rating}',
                             style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey.shade700)),
+                                fontSize: 10, color: Colors.grey.shade700)),
                       ],
                     ),
                     const Spacer(),

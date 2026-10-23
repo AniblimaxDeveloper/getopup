@@ -391,3 +391,17 @@ class AppState extends ChangeNotifier {
     return base64.encode(bytes);
   }
 }
+
+  Future<void> syncFirebaseUser({
+    required String uid,
+    required String name,
+    required String email,
+    String? photoUrl,
+  }) async {
+    _userName = name;
+    _userEmail = email;
+    _loginMethod = 'google';
+    _loggedIn = true;
+    await _persist();
+    notifyListeners();
+  }
