@@ -35,8 +35,8 @@ class AppState extends ChangeNotifier {
   int _streak = 0;
   final List<String> _wishlist = [];
   final Map<String, Map<String, dynamic>> _reviews = {};
-  final List<String> _searchHistory = [];
-  final List<String> _quickTopups = [];
+  List<String> _searchHistory = [];
+  List<String> _quickTopups = [];
   final Map<String, bool> _notifPrefs = {
     'success': true,
     'reward': true,
