@@ -6,6 +6,10 @@ import 'favorites_screen.dart';
 import 'help_center_screen.dart';
 import 'notifications_screen.dart';
 import 'settings_screen.dart';
+import 'analytics_screen.dart';
+import 'wishlist_screen.dart';
+import 'events_screen.dart';
+import 'tutorial_screen.dart';
 import 'login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {

@@ -24,6 +24,7 @@ class AppState extends ChangeNotifier {
   bool _onboardingDone = false;
   bool _loaded = false;
   bool _darkMode = false;
+  int _themeColorIndex = 0;
   String _language = 'id';
   double _fontScale = 1.0;
   bool _notifEnabled = true;
@@ -31,6 +32,16 @@ class AppState extends ChangeNotifier {
   bool _loggedIn = false;
   final List<String> _favorites = [];
   DateTime? _lastCheckIn;
+  int _streak = 0;
+  final List<String> _wishlist = [];
+  final Map<String, Map<String, dynamic>> _reviews = {};
+  final List<String> _searchHistory = [];
+  final List<String> _quickTopups = [];
+  final Map<String, bool> _notifPrefs = {
+    'success': true,
+    'reward': true,
+    'promo': true,
+  };
   List<AppNotification> _notifications = [];
 
   int get balance => _balance;
@@ -47,15 +58,22 @@ class AppState extends ChangeNotifier {
   bool get onboardingDone => _onboardingDone;
   Set<String> get usedVouchers => Set.unmodifiable(_usedVouchers);
   bool get darkMode => _darkMode;
+  int get themeColorIndex => _themeColorIndex;
   String get language => _language;
   double get fontScale => _fontScale;
   bool get notifEnabled => _notifEnabled;
   bool get hasPin => _pinHash != null;
   bool get loggedIn => _loggedIn;
   List<String> get favorites => List.unmodifiable(_favorites);
+  List<String> get wishlist => List.unmodifiable(_wishlist);
+  List<String> get searchHistory => List.unmodifiable(_searchHistory);
+  List<String> get quickTopups => List.unmodifiable(_quickTopups);
+  Map<String, Map<String, dynamic>> get reviews => Map.unmodifiable(_reviews);
+  Map<String, bool> get notifPrefs => Map.unmodifiable(_notifPrefs);
   List<AppNotification> get notifications => List.unmodifiable(_notifications);
   int get unreadCount => _notifications.where((n) => !n.read).length;
   int get gameTxCount => _history.where((t) => t.type == 'game').length;
+  int get streak => _streak;
 
   int get level => (_xp / 100).floor() + 1;
   int get xpInLevel => _xp % 100;
@@ -65,6 +83,12 @@ class AppState extends ChangeNotifier {
     if (_xp >= 200) return 'Pro';
     if (_xp >= 100) return 'Ahli';
     return 'Pemula';
+  }
+
+  int get checkInReward {
+    if (_streak == 0) return 500;
+    final base = 500 + (_streak * 250);
+    return base > 2000 ? 2000 : base;
   }
 
   bool get canCheckIn {
@@ -91,12 +115,17 @@ class AppState extends ChangeNotifier {
     _xp = p.getInt('xp') ?? 0;
     _onboardingDone = p.getBool('onboardingDone') ?? false;
     _darkMode = p.getBool('darkMode') ?? false;
+    _themeColorIndex = p.getInt('themeColorIndex') ?? 0;
     _language = p.getString('language') ?? 'id';
     _fontScale = p.getDouble('fontScale') ?? 1.0;
     _notifEnabled = p.getBool('notifEnabled') ?? true;
     _pinHash = p.getString('pinHash');
+    _streak = p.getInt('streak') ?? 0;
     _usedVouchers.addAll(p.getStringList('usedVouchers') ?? []);
     _favorites.addAll(p.getStringList('favorites') ?? []);
+    _wishlist.addAll(p.getStringList('wishlist') ?? []);
+    _searchHistory.addAll(p.getStringList('searchHistory') ?? []);
+    _quickTopups.addAll(p.getStringList('quickTopups') ?? []);
     final lastCi = p.getString('lastCheckIn');
     if (lastCi != null) _lastCheckIn = DateTime.tryParse(lastCi);
 
@@ -120,6 +149,24 @@ class AppState extends ChangeNotifier {
         _notifications = [];
       }
     }
+    final rawReviews = p.getString('reviews');
+    if (rawReviews != null && rawReviews.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(rawReviews) as Map<String, dynamic>;
+        decoded.forEach((k, v) {
+          _reviews[k] = Map<String, dynamic>.from(v as Map);
+        });
+      } catch (_) {}
+    }
+    final rawPrefs = p.getString('notifPrefs');
+    if (rawPrefs != null && rawPrefs.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(rawPrefs) as Map<String, dynamic>;
+        decoded.forEach((k, v) {
+          _notifPrefs[k] = v as bool;
+        });
+      } catch (_) {}
+    }
     _loaded = true;
     notifyListeners();
   }
@@ -137,12 +184,17 @@ class AppState extends ChangeNotifier {
     await p.setInt('xp', _xp);
     await p.setBool('onboardingDone', _onboardingDone);
     await p.setBool('darkMode', _darkMode);
+    await p.setInt('themeColorIndex', _themeColorIndex);
     await p.setString('language', _language);
     await p.setDouble('fontScale', _fontScale);
     await p.setBool('notifEnabled', _notifEnabled);
+    await p.setInt('streak', _streak);
     if (_pinHash != null) await p.setString('pinHash', _pinHash!);
     await p.setStringList('usedVouchers', _usedVouchers.toList());
     await p.setStringList('favorites', _favorites);
+    await p.setStringList('wishlist', _wishlist);
+    await p.setStringList('searchHistory', _searchHistory);
+    await p.setStringList('quickTopups', _quickTopups);
     if (_lastCheckIn != null) {
       await p.setString('lastCheckIn', _lastCheckIn!.toIso8601String());
     }
@@ -150,6 +202,8 @@ class AppState extends ChangeNotifier {
         'history', jsonEncode(_history.map((t) => t.toJson()).toList()));
     await p.setString('notifications',
         jsonEncode(_notifications.map((n) => n.toJson()).toList()));
+    await p.setString('reviews', jsonEncode(_reviews));
+    await p.setString('notifPrefs', jsonEncode(_notifPrefs));
   }
 
   Future<void> completeOnboarding() async {
@@ -158,20 +212,9 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loginWithGoogleMock(String email) async {
-    _userEmail = email;
-    _loginMethod = 'google';
-    final name = email.contains('@') ? email.split('@').first : email;
-    _userName = name.isEmpty ? 'Google User' : name;
-    _loggedIn = true;
-    await _persist();
-    notifyListeners();
-  }
-
   Future<void> loginAsGuest(String name) async {
     _userName = name.trim().isEmpty ? 'Guest' : name.trim();
     _loginMethod = 'guest';
-    _userEmail = '';
     _loggedIn = true;
     await _persist();
     notifyListeners();
@@ -201,6 +244,12 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setThemeColorIndex(int v) async {
+    _themeColorIndex = v;
+    await _persist();
+    notifyListeners();
+  }
+
   Future<void> setLanguage(String v) async {
     _language = v;
     await _persist();
@@ -215,6 +264,12 @@ class AppState extends ChangeNotifier {
 
   Future<void> setNotifEnabled(bool v) async {
     _notifEnabled = v;
+    await _persist();
+    notifyListeners();
+  }
+
+  Future<void> setNotifPref(String type, bool v) async {
+    _notifPrefs[type] = v;
     await _persist();
     notifyListeners();
   }
@@ -243,20 +298,85 @@ class AppState extends ChangeNotifier {
 
   bool isFavorite(String gameId) => _favorites.contains(gameId);
 
-  Future<int?> checkIn() async {
-    if (!canCheckIn) return null;
-    _lastCheckIn = DateTime.now();
-    _balance += 500;
-    _xp += 10;
-    _addNotification('Daily Check-in',
-        'Anda mendapat bonus Rp 500 dan 10 XP', 'reward');
+  Future<void> toggleWishlist(String key) async {
+    if (_wishlist.contains(key)) {
+      _wishlist.remove(key);
+    } else {
+      _wishlist.add(key);
+    }
     await _persist();
     notifyListeners();
-    return 500;
+  }
+
+  bool isInWishlist(String key) => _wishlist.contains(key);
+
+  Future<void> addSearchHistory(String q) async {
+    if (q.isEmpty) return;
+    _searchHistory.remove(q);
+    _searchHistory.insert(0, q);
+    if (_searchHistory.length > 10) {
+      _searchHistory = _searchHistory.take(10).toList();
+    }
+    await _persist();
+    notifyListeners();
+  }
+
+  Future<void> clearSearchHistory() async {
+    _searchHistory.clear();
+    await _persist();
+    notifyListeners();
+  }
+
+  Future<void> addQuickTopup(String key) async {
+    _quickTopups.remove(key);
+    _quickTopups.insert(0, key);
+    if (_quickTopups.length > 5) {
+      _quickTopups = _quickTopups.take(5).toList();
+    }
+    await _persist();
+    notifyListeners();
+  }
+
+  Future<void> addReview(String gameId, int rating, String comment) async {
+    _reviews[gameId] = {
+      'rating': rating,
+      'comment': comment,
+      'date': DateTime.now().toIso8601String(),
+    };
+    await _persist();
+    notifyListeners();
+  }
+
+  Map<String, dynamic>? getReview(String gameId) => _reviews[gameId];
+
+  Future<int?> checkIn() async {
+    if (!canCheckIn) return null;
+    final now = DateTime.now();
+    final last = _lastCheckIn;
+    if (last != null) {
+      final diff = now.difference(last).inDays;
+      if (diff <= 1) {
+        _streak += 1;
+      } else {
+        _streak = 1;
+      }
+    } else {
+      _streak = 1;
+    }
+    _lastCheckIn = now;
+    final reward = checkInReward;
+    _balance += reward;
+    _xp += 10;
+    _addNotification('Daily Check-in',
+        'Streak hari ke-${_streak}! Bonus Rp $reward + 10 XP', 'reward');
+    await _persist();
+    notifyListeners();
+    return reward;
   }
 
   void _addNotification(String title, String message, String type) {
     if (!_notifEnabled) return;
+    if (_notifPrefs[type] == false) return;
     _notifications.insert(
       0,
       AppNotification(
@@ -307,8 +427,8 @@ class AppState extends ChangeNotifier {
       status: 'success',
     );
     _history.insert(0, tx);
-    _addNotification('Isi Saldo Berhasil',
-        'Rp $amount via $method. Saldo: Rp $_balance', 'success');
+    _addNotification(
+        'Isi Saldo Berhasil', 'Rp $amount via $method', 'success');
     await _persist();
     notifyListeners();
     return tx;
@@ -345,6 +465,7 @@ class AppState extends ChangeNotifier {
       status: 'success',
     );
     _history.insert(0, tx);
+    await addQuickTopup('${game.id}|${denom.label}');
     _addNotification(
         'Top Up ${game.name} Berhasil', '${denom.label} - Rp $total', 'success');
     await _persist();
@@ -369,8 +490,13 @@ class AppState extends ChangeNotifier {
     _xp = 0;
     _usedVouchers.clear();
     _favorites.clear();
+    _wishlist.clear();
+    _searchHistory.clear();
+    _quickTopups.clear();
+    _reviews.clear();
     _notifications.clear();
     _lastCheckIn = null;
+    _streak = 0;
     await _persist();
     notifyListeners();
   }
@@ -391,17 +517,3 @@ class AppState extends ChangeNotifier {
     return base64.encode(bytes);
   }
 }
-
-  Future<void> syncFirebaseUser({
-    required String uid,
-    required String name,
-    required String email,
-    String? photoUrl,
-  }) async {
-    _userName = name;
-    _userEmail = email;
-    _loginMethod = 'google';
-    _loggedIn = true;
-    await _persist();
-    notifyListeners();
-  }
