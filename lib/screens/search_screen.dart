@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../data/dummy_games.dart';
+import '../data/games_all.dart';
 import '../models/game.dart';
 import 'game_detail_screen.dart';
 
@@ -12,7 +12,7 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final _controller = TextEditingController();
-  List<Game> _results = games;
+  List<Game> _results = allGames;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,7 @@ class _SearchScreenState extends State<SearchScreen> {
         title: TextField(
           controller: _controller,
           autofocus: true,
-          onChanged: (v) => setState(() => _results = searchGames(v)),
+          onChanged: (v) => setState(() => _results = searchAll(v)),
           decoration: const InputDecoration(
             hintText: 'Cari game atau publisher...',
             border: InputBorder.none,

@@ -5,6 +5,8 @@ import '../data/vouchers.dart';
 import '../services/app_state.dart';
 import 'receipt_screen.dart';
 import 'saldo_screen.dart';
+import 'payment_method_screen.dart';
+import '../models/payment_method.dart';
 
 class GameDetailScreen extends StatefulWidget {
   final Game game;
@@ -100,6 +102,14 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
 
     final confirm = await _showConfirm();
     if (confirm != true) return;
+
+    final method = await Navigator.push<PaymentMethod>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PaymentMethodScreen(amount: _total),
+      ),
+    );
+    if (method == null) return;
 
     await _runProcessing();
 

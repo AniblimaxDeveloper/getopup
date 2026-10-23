@@ -31,14 +31,6 @@ jobs:
             git checkout -- pubspec.yaml 2>/dev/null || true
           fi
 
-      - name: Apply custom app icon
-        run: |
-          mkdir -p android/app/src/main/res/mipmap-anydpi-v26
-          mkdir -p android/app/src/main/res/drawable
-          cp _icons/mipmap-anydpi-v26/*.xml android/app/src/main/res/mipmap-anydpi-v26/
-          cp _icons/drawable/*.xml android/app/src/main/res/drawable/
-          echo "Custom icon applied"
-
       - name: Build APK
         run: flutter build apk --release
 

@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
-import '../data/dummy_games.dart';
+import '../data/games_all.dart';
 import '../data/banners.dart';
 import '../models/game.dart';
 import '../services/app_state.dart';
@@ -264,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _popularSection(NumberFormat rupiah) {
-    final popular = popularGames.take(8).toList();
+    final popular = allPopular.take(8).toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
