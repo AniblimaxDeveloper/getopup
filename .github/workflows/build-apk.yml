@@ -22,7 +22,8 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - run: flutter pub get
+      - name: Get dependencies
+        run: flutter pub get
 
       - name: Regenerate android if missing
         run: |
@@ -30,15 +31,6 @@ jobs:
             flutter create . --platforms=android --project-name getopup
             git checkout -- pubspec.yaml 2>/dev/null || true
           fi
-
-      - name: Decode google-services.json
-        run: |
-          mkdir -p android/app
-          if [ -z "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then
-            echo "::error::Secret GOOGLE_SERVICES_JSON kosong. Set dulu di GitHub Settings."
-            exit 1
-          fi
-          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 -d > android/app/google-services.json
 
       - name: Build APK
         run: flutter build apk --release
