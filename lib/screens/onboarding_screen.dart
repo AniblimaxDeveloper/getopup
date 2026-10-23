@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/app_state.dart';
-import 'root_screen.dart';
+import 'login_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -14,24 +14,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final _pages = const [
     _PageData(icon: Icons.sports_esports, color: Color(0xFF1565C0),
-        title: '60+ Game Tersedia',
-        desc: 'Top up semua game favoritmu — Mobile Legends, Free Fire, PUBG, Genshin, dan banyak lagi.'),
+        title: '85+ Game Tersedia',
+        desc: 'Top up semua game favoritmu — Mobile Legends, Free Fire, PUBG, Genshin, dan puluhan lainnya.'),
     _PageData(icon: Icons.local_offer, color: Color(0xFF2E7D32),
         title: 'Voucher & Promo',
         desc: 'Gunakan kode voucher untuk diskon hingga Rp 100.000 setiap transaksi.'),
     _PageData(icon: Icons.account_balance_wallet, color: Color(0xFFEF6C00),
         title: 'Isi Saldo Instan',
-        desc: 'Top up saldo dengan DANA, OVO, GoPay, QRIS, atau transfer bank — langsung masuk.'),
+        desc: 'Top up saldo dengan DANA, OVO, GoPay, QRIS, atau transfer bank.'),
     _PageData(icon: Icons.verified, color: Color(0xFF6A1B9A),
         title: 'Aman & Terpercaya',
-        desc: 'Transaksi tersimpan permanen, bukti digital, dan keamanan terjamin.'),
+        desc: 'Transaksi tersimpan permanen, bukti digital, keamanan PIN.'),
   ];
 
   Future<void> _finish() async {
     await AppState.instance.completeOnboarding();
     if (!mounted) return;
     Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (_) => const RootScreen()));
+        context, MaterialPageRoute(builder: (_) => const LoginScreen()));
   }
 
   @override
@@ -94,7 +94,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   width: _index == i ? 24 : 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: _index == i ? const Color(0xFF1565C0) : Colors.grey.shade300,
+                    color: _index == i
+                        ? const Color(0xFF1565C0)
+                        : Colors.grey.shade300,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 );
@@ -122,7 +124,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         borderRadius: BorderRadius.circular(12)),
                   ),
                   child: Text(
-                    _index == _pages.length - 1 ? 'Mulai Sekarang' : 'Lanjut',
+                    _index == _pages.length - 1 ? 'Mulai' : 'Lanjut',
                     style: const TextStyle(
                         fontSize: 16,
                         color: Colors.white,

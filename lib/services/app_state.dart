@@ -13,10 +13,20 @@ class AppState extends ChangeNotifier {
   int _balance = 0;
   List<Transaction> _history = [];
   String _userName = 'Player';
+  String _userEmail = '';
+  String _loginMethod = 'guest';
+  String _avatar = '😀';
+  String _bio = 'Top up game setiap hari!';
+  String _referralCode = '';
+  DateTime _joinDate = DateTime.now();
+  int _xp = 0;
   final Set<String> _usedVouchers = {};
   bool _onboardingDone = false;
   bool _loaded = false;
   bool _darkMode = false;
+  String _language = 'id';
+  double _fontScale = 1.0;
+  bool _notifEnabled = true;
   String? _pinHash;
   bool _loggedIn = false;
   final List<String> _favorites = [];
@@ -26,16 +36,36 @@ class AppState extends ChangeNotifier {
   int get balance => _balance;
   List<Transaction> get history => List.unmodifiable(_history);
   String get userName => _userName;
+  String get userEmail => _userEmail;
+  String get loginMethod => _loginMethod;
+  String get avatar => _avatar;
+  String get bio => _bio;
+  String get referralCode => _referralCode;
+  DateTime get joinDate => _joinDate;
+  int get xp => _xp;
   bool get loaded => _loaded;
   bool get onboardingDone => _onboardingDone;
   Set<String> get usedVouchers => Set.unmodifiable(_usedVouchers);
   bool get darkMode => _darkMode;
+  String get language => _language;
+  double get fontScale => _fontScale;
+  bool get notifEnabled => _notifEnabled;
   bool get hasPin => _pinHash != null;
   bool get loggedIn => _loggedIn;
   List<String> get favorites => List.unmodifiable(_favorites);
   List<AppNotification> get notifications => List.unmodifiable(_notifications);
   int get unreadCount => _notifications.where((n) => !n.read).length;
   int get gameTxCount => _history.where((t) => t.type == 'game').length;
+
+  int get level => (_xp / 100).floor() + 1;
+  int get xpInLevel => _xp % 100;
+  String get rank {
+    if (_xp >= 1000) return 'Legenda';
+    if (_xp >= 500) return 'Master';
+    if (_xp >= 200) return 'Pro';
+    if (_xp >= 100) return 'Ahli';
+    return 'Pemula';
+  }
 
   bool get canCheckIn {
     if (_lastCheckIn == null) return true;
@@ -50,8 +80,20 @@ class AppState extends ChangeNotifier {
     final p = await SharedPreferences.getInstance();
     _balance = p.getInt('balance') ?? 0;
     _userName = p.getString('userName') ?? 'Player';
+    _userEmail = p.getString('userEmail') ?? '';
+    _loginMethod = p.getString('loginMethod') ?? 'guest';
+    _avatar = p.getString('avatar') ?? '😀';
+    _bio = p.getString('bio') ?? 'Top up game setiap hari!';
+    _referralCode = p.getString('referralCode') ?? '';
+    final jd = p.getString('joinDate');
+    _joinDate = jd != null ? DateTime.tryParse(jd) ?? DateTime.now() : DateTime.now();
+    if (_referralCode.isEmpty) _referralCode = _genReferral();
+    _xp = p.getInt('xp') ?? 0;
     _onboardingDone = p.getBool('onboardingDone') ?? false;
     _darkMode = p.getBool('darkMode') ?? false;
+    _language = p.getString('language') ?? 'id';
+    _fontScale = p.getDouble('fontScale') ?? 1.0;
+    _notifEnabled = p.getBool('notifEnabled') ?? true;
     _pinHash = p.getString('pinHash');
     _usedVouchers.addAll(p.getStringList('usedVouchers') ?? []);
     _favorites.addAll(p.getStringList('favorites') ?? []);
@@ -68,7 +110,6 @@ class AppState extends ChangeNotifier {
         _history = [];
       }
     }
-
     final rawNotif = p.getString('notifications');
     if (rawNotif != null && rawNotif.isNotEmpty) {
       try {
@@ -79,7 +120,6 @@ class AppState extends ChangeNotifier {
         _notifications = [];
       }
     }
-
     _loaded = true;
     notifyListeners();
   }
@@ -88,8 +128,18 @@ class AppState extends ChangeNotifier {
     final p = await SharedPreferences.getInstance();
     await p.setInt('balance', _balance);
     await p.setString('userName', _userName);
+    await p.setString('userEmail', _userEmail);
+    await p.setString('loginMethod', _loginMethod);
+    await p.setString('avatar', _avatar);
+    await p.setString('bio', _bio);
+    await p.setString('referralCode', _referralCode);
+    await p.setString('joinDate', _joinDate.toIso8601String());
+    await p.setInt('xp', _xp);
     await p.setBool('onboardingDone', _onboardingDone);
     await p.setBool('darkMode', _darkMode);
+    await p.setString('language', _language);
+    await p.setDouble('fontScale', _fontScale);
+    await p.setBool('notifEnabled', _notifEnabled);
     if (_pinHash != null) await p.setString('pinHash', _pinHash!);
     await p.setStringList('usedVouchers', _usedVouchers.toList());
     await p.setStringList('favorites', _favorites);
@@ -102,9 +152,27 @@ class AppState extends ChangeNotifier {
         jsonEncode(_notifications.map((n) => n.toJson()).toList()));
   }
 
-  // ---------- Onboarding & Auth ----------
   Future<void> completeOnboarding() async {
     _onboardingDone = true;
+    await _persist();
+    notifyListeners();
+  }
+
+  Future<void> loginWithGoogleMock(String email) async {
+    _userEmail = email;
+    _loginMethod = 'google';
+    final name = email.contains('@') ? email.split('@').first : email;
+    _userName = name.isEmpty ? 'Google User' : name;
+    _loggedIn = true;
+    await _persist();
+    notifyListeners();
+  }
+
+  Future<void> loginAsGuest(String name) async {
+    _userName = name.trim().isEmpty ? 'Guest' : name.trim();
+    _loginMethod = 'guest';
+    _userEmail = '';
+    _loggedIn = true;
     await _persist();
     notifyListeners();
   }
@@ -127,14 +195,42 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ---------- Theme ----------
   Future<void> setDarkMode(bool v) async {
     _darkMode = v;
     await _persist();
     notifyListeners();
   }
 
-  // ---------- Favorites ----------
+  Future<void> setLanguage(String v) async {
+    _language = v;
+    await _persist();
+    notifyListeners();
+  }
+
+  Future<void> setFontScale(double v) async {
+    _fontScale = v;
+    await _persist();
+    notifyListeners();
+  }
+
+  Future<void> setNotifEnabled(bool v) async {
+    _notifEnabled = v;
+    await _persist();
+    notifyListeners();
+  }
+
+  Future<void> setAvatar(String v) async {
+    _avatar = v;
+    await _persist();
+    notifyListeners();
+  }
+
+  Future<void> setBio(String v) async {
+    _bio = v;
+    await _persist();
+    notifyListeners();
+  }
+
   Future<void> toggleFavorite(String gameId) async {
     if (_favorites.contains(gameId)) {
       _favorites.remove(gameId);
@@ -147,20 +243,20 @@ class AppState extends ChangeNotifier {
 
   bool isFavorite(String gameId) => _favorites.contains(gameId);
 
-  // ---------- Daily Check-in ----------
   Future<int?> checkIn() async {
     if (!canCheckIn) return null;
     _lastCheckIn = DateTime.now();
     _balance += 500;
+    _xp += 10;
     _addNotification('Daily Check-in',
-        'Anda mendapat bonus Rp 500. Saldo: Rp $_balance', 'reward');
+        'Anda mendapat bonus Rp 500 dan 10 XP', 'reward');
     await _persist();
     notifyListeners();
     return 500;
   }
 
-  // ---------- Notifications ----------
   void _addNotification(String title, String message, String type) {
+    if (!_notifEnabled) return;
     _notifications.insert(
       0,
       AppNotification(
@@ -191,9 +287,9 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ---------- Transaksi ----------
   Future<Transaction> topupSaldo(int amount, String method) async {
     _balance += amount;
+    _xp += (amount / 10000).floor();
     final tx = Transaction(
       code: _genCode('SALDO'),
       type: 'saldo',
@@ -212,7 +308,7 @@ class AppState extends ChangeNotifier {
     );
     _history.insert(0, tx);
     _addNotification('Isi Saldo Berhasil',
-        'Rp ${amount} via $method. Saldo: Rp $_balance', 'success');
+        'Rp $amount via $method. Saldo: Rp $_balance', 'success');
     await _persist();
     notifyListeners();
     return tx;
@@ -230,8 +326,8 @@ class AppState extends ChangeNotifier {
     if (total < 0) return null;
     if (_balance < total) return null;
     _balance -= total;
+    _xp += 20;
     if (voucherCode.isNotEmpty) _usedVouchers.add(voucherCode);
-
     final tx = Transaction(
       code: _genCode('GTU'),
       type: 'game',
@@ -266,6 +362,11 @@ class AppState extends ChangeNotifier {
     _balance = 0;
     _history = [];
     _userName = 'Player';
+    _userEmail = '';
+    _loginMethod = 'guest';
+    _avatar = '😀';
+    _bio = 'Top up game setiap hari!';
+    _xp = 0;
     _usedVouchers.clear();
     _favorites.clear();
     _notifications.clear();
@@ -279,8 +380,13 @@ class AppState extends ChangeNotifier {
     return '$prefix-${List.generate(8, (_) => r.nextInt(10)).join()}';
   }
 
+  String _genReferral() {
+    final r = Random();
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    return List.generate(8, (_) => chars[r.nextInt(chars.length)]).join();
+  }
+
   String _hashPin(String pin) {
-    // Simpel hash lokal — bukan untuk produksi
     final bytes = utf8.encode('${pin}_getopup_v5_salt');
     return base64.encode(bytes);
   }

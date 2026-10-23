@@ -16,21 +16,20 @@ class GeTopUpApp extends StatelessWidget {
     return AnimatedBuilder(
       animation: AppState.instance,
       builder: (context, _) {
+        final s = AppState.instance;
         return MaterialApp(
           title: 'GeTopUp',
           debugShowCheckedModeBanner: false,
-          themeMode: AppState.instance.darkMode
-              ? ThemeMode.dark
-              : ThemeMode.light,
-          theme: _lightTheme(),
-          darkTheme: _darkTheme(),
+          themeMode: s.darkMode ? ThemeMode.dark : ThemeMode.light,
+          theme: _lightTheme(s.fontScale),
+          darkTheme: _darkTheme(s.fontScale),
           home: const SplashScreen(),
         );
       },
     );
   }
 
-  ThemeData _lightTheme() => ThemeData(
+  ThemeData _lightTheme(double fontScale) => ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
         colorScheme: ColorScheme.fromSeed(
@@ -43,9 +42,10 @@ class GeTopUpApp extends StatelessWidget {
           elevation: 0,
           foregroundColor: Colors.black87,
         ),
+        textTheme: _scaledText(ThemeData.light().textTheme, fontScale),
       );
 
-  ThemeData _darkTheme() => ThemeData(
+  ThemeData _darkTheme(double fontScale) => ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
         colorScheme: ColorScheme.fromSeed(
@@ -59,5 +59,10 @@ class GeTopUpApp extends StatelessWidget {
           foregroundColor: Colors.white,
         ),
         cardColor: const Color(0xFF1E1E1E),
+        textTheme: _scaledText(ThemeData.dark().textTheme, fontScale),
+      );
+
+  TextTheme _scaledText(TextTheme base, double scale) => base.apply(
+        fontSizeFactor: scale,
       );
 }

@@ -3,11 +3,10 @@ import 'package:intl/intl.dart';
 import '../services/app_state.dart';
 import 'achievements_screen.dart';
 import 'favorites_screen.dart';
-import 'faq_screen.dart';
+import 'help_center_screen.dart';
 import 'notifications_screen.dart';
-import 'terms_screen.dart';
-import 'about_screen.dart';
-import 'auth_screen.dart';
+import 'settings_screen.dart';
+import 'login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -19,8 +18,8 @@ class ProfileScreen extends StatelessWidget {
     return AnimatedBuilder(
       animation: AppState.instance,
       builder: (context, _) {
-        final state = AppState.instance;
-        final gameTx = state.history.where((t) => t.type == 'game').length;
+        final s = AppState.instance;
+        final gameTx = s.gameTxCount;
         final unlocked =
             (gameTx >= 1 ? 1 : 0) +
                 (gameTx >= 5 ? 1 : 0) +
@@ -28,39 +27,187 @@ class ProfileScreen extends StatelessWidget {
                 (gameTx >= 20 ? 1 : 0) +
                 (gameTx >= 50 ? 1 : 0);
         return Scaffold(
-          appBar: AppBar(title: const Text('Profil')),
+          appBar: AppBar(
+            title: const Text('Profil'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.settings),
+                onPressed: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const SettingsScreen())),
+              ),
+            ],
+          ),
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Center(
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundColor: const Color(0xFFE3F2FD),
-                  child: const Icon(Icons.person,
-                      size: 50, color: Color(0xFF1565C0)),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF0D47A1), Color(0xFF42A5F5)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () => _pickAvatar(context),
+                          child: Container(
+                            width: 72,
+                            height: 72,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                  color: Colors.white, width: 3),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(s.avatar,
+                                style: const TextStyle(fontSize: 40)),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(s.userName,
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  Icon(
+                                      s.loginMethod == 'google'
+                                          ? Icons.g_mobiledata
+                                          : Icons.person,
+                                      color: Colors.white70,
+                                      size: 14),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    s.loginMethod == 'google'
+                                        ? (s.userEmail.isEmpty
+                                            ? 'Google'
+                                            : s.userEmail)
+                                        : 'Tamu',
+                                    style: const TextStyle(
+                                        color: Colors.white70, fontSize: 11),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text('${s.rank} · Lv.${s.level}',
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.white),
+                          onPressed: () => _editProfile(context),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(s.bio,
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 12)),
+                    const SizedBox(height: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('XP: ${s.xpInLevel}/100',
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 11)),
+                            Text(s.rank,
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 11)),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: s.xpInLevel / 100,
+                            minHeight: 6,
+                            backgroundColor: Colors.white24,
+                            color: Colors.amber,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 12),
-              Center(
-                child: Text(state.userName,
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold)),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.amber.shade200),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.card_giftcard,
+                        color: Colors.amber, size: 24),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Kode Referral',
+                              style: TextStyle(
+                                  fontSize: 11, color: Colors.black87)),
+                          Text(s.referralCode,
+                              style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 2)),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.copy, size: 20),
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(
+                                  'Kode ${s.referralCode} disalin')),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 4),
-              Center(
-                child: Text('getopup.com member',
-                    style: TextStyle(
-                        color: Colors.grey.shade600, fontSize: 12)),
-              ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
-                      child: _stat(context, 'Saldo', rupiah.format(state.balance),
-                          Icons.wallet, Colors.blue)),
+                      child: _stat(context, 'Saldo',
+                          rupiah.format(s.balance), Icons.wallet, Colors.blue)),
                   const SizedBox(width: 8),
                   Expanded(
-                      child: _stat(context, 'Top Up', '$gameTx kali',
+                      child: _stat(context, 'Top Up', '$gameTx',
                           Icons.sports_esports, Colors.green)),
                   const SizedBox(width: 8),
                   Expanded(
@@ -68,26 +215,14 @@ class ProfileScreen extends StatelessWidget {
                           Icons.emoji_events, Colors.amber)),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               Card(
                 child: Column(
                   children: [
-                    SwitchListTile(
-                      secondary: Icon(
-                        state.darkMode
-                            ? Icons.dark_mode
-                            : Icons.light_mode,
-                      ),
-                      title: const Text('Mode Gelap'),
-                      subtitle: Text(state.darkMode ? 'Aktif' : 'Nonaktif'),
-                      value: state.darkMode,
-                      onChanged: (v) => state.setDarkMode(v),
-                    ),
-                    const Divider(height: 1),
                     ListTile(
                       leading: const Icon(Icons.star),
                       title: const Text('Game Favorit'),
-                      subtitle: Text('${state.favorites.length} game'),
+                      subtitle: Text('${s.favorites.length} game'),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => Navigator.push(
                           context,
@@ -108,7 +243,7 @@ class ProfileScreen extends StatelessWidget {
                     ListTile(
                       leading: const Icon(Icons.notifications),
                       title: const Text('Notifikasi'),
-                      subtitle: Text('${state.unreadCount} belum dibaca'),
+                      subtitle: Text('${s.unreadCount} belum dibaca'),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () {
                         Navigator.push(
@@ -116,125 +251,18 @@ class ProfileScreen extends StatelessWidget {
                             MaterialPageRoute(
                                 builder: (_) =>
                                     const NotificationsScreen()));
-                        state.markNotificationsRead();
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              Card(
-                child: Column(
-                  children: [
-                    ListTile(
-                      leading: const Icon(Icons.edit),
-                      title: const Text('Ubah Nama'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () async {
-                        final c =
-                            TextEditingController(text: state.userName);
-                        final v = await showDialog<String>(
-                          context: context,
-                          builder: (_) => AlertDialog(
-                            title: const Text('Ubah Nama'),
-                            content: TextField(
-                              controller: c,
-                              autofocus: true,
-                              decoration: const InputDecoration(
-                                  hintText: 'Nama baru'),
-                            ),
-                            actions: [
-                              TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('Batal')),
-                              TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, c.text),
-                                  child: const Text('Simpan')),
-                            ],
-                          ),
-                        );
-                        if (v != null) await state.setUserName(v);
+                        s.markNotificationsRead();
                       },
                     ),
                     const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.lock_outline),
-                      title: const Text('Ubah PIN'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () async {
-                        final c = TextEditingController();
-                        final v = await showDialog<String>(
-                          context: context,
-                          builder: (_) => AlertDialog(
-                            title: const Text('Ubah PIN'),
-                            content: TextField(
-                              controller: c,
-                              autofocus: true,
-                              obscureText: true,
-                              keyboardType: TextInputType.number,
-                              maxLength: 6,
-                              decoration: const InputDecoration(
-                                  hintText: 'PIN baru (4-6 digit)'),
-                            ),
-                            actions: [
-                              TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('Batal')),
-                              TextButton(
-                                  onPressed: () {
-                                    if (c.text.length >= 4) {
-                                      Navigator.pop(context, c.text);
-                                    }
-                                  },
-                                  child: const Text('Simpan')),
-                            ],
-                          ),
-                        );
-                        if (v != null && v.length >= 4) {
-                          await state.setPin(v);
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('PIN berhasil diubah')));
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              Card(
-                child: Column(
-                  children: [
                     ListTile(
                       leading: const Icon(Icons.help_outline),
-                      title: const Text('Bantuan & FAQ'),
+                      title: const Text('Bantuan & Info'),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => const FaqScreen())),
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.privacy_tip_outlined),
-                      title: const Text('Syarat & Ketentuan'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const TermsScreen())),
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.info_outline),
-                      title: const Text('Tentang GeTopUp'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const AboutScreen())),
+                              builder: (_) => const HelpCenterScreen())),
                     ),
                   ],
                 ),
@@ -250,29 +278,27 @@ class ProfileScreen extends StatelessWidget {
                       onTap: () async {
                         final ok = await showDialog<bool>(
                           context: context,
-                          builder: (_) => AlertDialog(
+                          builder: (ctx) => AlertDialog(
                             title: const Text('Keluar?'),
                             content:
-                                const Text('Anda perlu memasukkan PIN lagi.'),
+                                const Text('Anda perlu login kembali.'),
                             actions: [
                               TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, false),
+                                  onPressed: () => Navigator.pop(ctx, false),
                                   child: const Text('Batal')),
                               TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, true),
+                                  onPressed: () => Navigator.pop(ctx, true),
                                   child: const Text('Keluar')),
                             ],
                           ),
                         );
                         if (ok == true) {
-                          state.logout();
+                          s.logout();
                           if (!context.mounted) return;
                           Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
-                                builder: (_) => const AuthScreen()),
+                                builder: (_) => const LoginScreen()),
                             (route) => false,
                           );
                         }
@@ -280,31 +306,29 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     const Divider(height: 1),
                     ListTile(
-                      leading:
-                          const Icon(Icons.delete_forever, color: Colors.red),
+                      leading: const Icon(Icons.delete_forever,
+                          color: Colors.red),
                       title: const Text('Reset Semua Data',
                           style: TextStyle(color: Colors.red)),
                       onTap: () async {
                         final ok = await showDialog<bool>(
                           context: context,
-                          builder: (_) => AlertDialog(
+                          builder: (ctx) => AlertDialog(
                             title: const Text('Reset Semua Data?'),
                             content: const Text(
                                 'Saldo, riwayat, favorit, dan profil akan dihapus permanen.'),
                             actions: [
                               TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, false),
+                                  onPressed: () => Navigator.pop(ctx, false),
                                   child: const Text('Batal')),
                               TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, true),
+                                  onPressed: () => Navigator.pop(ctx, true),
                                   child: const Text('Hapus',
                                       style: TextStyle(color: Colors.red))),
                             ],
                           ),
                         );
-                        if (ok == true) await state.clearAll();
+                        if (ok == true) await s.clearAll();
                       },
                     ),
                   ],
@@ -314,7 +338,7 @@ class ProfileScreen extends StatelessWidget {
               Center(
                 child: Column(
                   children: [
-                    Text('GeTopUp v5.0.0',
+                    Text('GeTopUp v5.0.1',
                         style: TextStyle(
                             color: Colors.grey.shade600, fontSize: 12)),
                     const SizedBox(height: 2),
@@ -331,12 +355,84 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _stat(BuildContext context, String label, String value, IconData icon, Color color) {
+  static Future<void> _pickAvatar(BuildContext context) async {
+    const emojis = [
+      '😀', '😎', '🦊', '🐯', '🦁', '🐼', '🐨', '🐸', '🦄', '🐲',
+      '👾', '🤖', '👻', '🎮', '⚔️', '🛡️', '🔥', '⚡', '💎', '👑',
+    ];
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: GridView.count(
+          crossAxisCount: 5,
+          shrinkWrap: true,
+          children: emojis
+              .map((e) => InkWell(
+                    onTap: () => Navigator.pop(ctx, e),
+                    child: Center(
+                        child:
+                            Text(e, style: const TextStyle(fontSize: 32))),
+                  ))
+              .toList(),
+        ),
+      ),
+    );
+    if (picked != null) await AppState.instance.setAvatar(picked);
+  }
+
+  static Future<void> _editProfile(BuildContext context) async {
+    final nameC =
+        TextEditingController(text: AppState.instance.userName);
+    final bioC = TextEditingController(text: AppState.instance.bio);
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Edit Profil'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameC,
+              decoration: const InputDecoration(
+                  labelText: 'Nama', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: bioC,
+              maxLines: 2,
+              decoration: const InputDecoration(
+                  labelText: 'Bio', border: OutlineInputBorder()),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Batal')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Simpan')),
+        ],
+      ),
+    );
+    if (result == true) {
+      await AppState.instance.setUserName(nameC.text);
+      await AppState.instance.setBio(bioC.text);
+    }
+  }
+
+  Widget _stat(BuildContext context, String label, String value,
+      IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.05), blurRadius: 6),
+        ],
       ),
       child: Column(
         children: [
@@ -349,7 +445,8 @@ class ProfileScreen extends StatelessWidget {
               style: const TextStyle(
                   fontWeight: FontWeight.bold, fontSize: 12)),
           Text(label,
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 10)),
+              style: TextStyle(
+                  color: Colors.grey.shade600, fontSize: 10)),
         ],
       ),
     );
